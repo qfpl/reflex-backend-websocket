@@ -17,51 +17,58 @@ cabal-version:       >=1.10
 
 library
   exposed-modules:     Reflex.Server.WebSocket
-                     , Reflex.Server.WebSocket.Common
+                     , Reflex.Server.WebSocket.Socket
+                     , Reflex.Server.WebSocket.Reject
+                     , Reflex.Server.WebSocket.Accept
+                     , Reflex.Server.WebSocket.Connect
                      , Reflex.Server.WebSocket.Internal
-                     , Reflex.Server.WebSocket.ByteString
-                     , Reflex.Server.WebSocket.Binary
+
   build-depends:       base >=4.9 && <4.10
-                     , mtl
-                     , stm
-                     , lens
-                     , websockets
-                     , ttrie
-                     , hashable
-                     , reflex
-                     , bytestring >=0.10 && <0.11
                      , binary >=0.8 && <0.9
+                     , bytestring >=0.10 && <0.11
+                     , hashable          >= 1.2.6 && < 1.3
+                     , lens              >= 4.15.4 && < 4.16
+                     , mtl               >= 2.2.1 && < 2.3
+                     , reflex            >= 0.5 && < 0.6
+                     , stm               >= 2.4.4 && < 2.5
+                     , ttrie             >= 0.1.2 && < 0.2
+                     , websockets        >= 0.10.0 && < 0.11
+                     , reflex-binary     >= 0.1.0 && < 0.2
   hs-source-dirs:      src
+  ghc-options:         -Wall
   default-language:    Haskell2010
 
 executable example-client
   main-is:             Main.hs
   build-depends:       base >=4.9 && <4.10
-                     , mtl
-                     , stm
-                     , these
-                     , bytestring
-                     , containers
-                     , websockets
-                     , reflex
-                     , reflex-basic-host
-                     , websockets
+                     , bytestring >=0.10 && <0.11
+                     , containers        >= 0.5.7 && < 0.6
+                     , mtl               >= 2.2.1 && < 2.3
+                     , reflex            >= 0.5 && < 0.6
+                     , stm               >= 2.4.4 && < 2.5
+                     , websockets        >= 0.10.0 && < 0.11
+                     , reflex-basic-host >= 0.1.0 && < 0.2
+                     , reflex-binary     >= 0.1.0 && < 0.2
                      , reflex-server-websocket
   hs-source-dirs:      example/client
+  ghc-options:         -Wall
   default-language:    Haskell2010
 
 executable example-server
   main-is:             Main.hs
   build-depends:       base >=4.9 && <4.10
-                     , mtl
-                     , stm
-                     , these
-                     , bytestring
-                     , containers
-                     , websockets
-                     , reflex
-                     , reflex-basic-host
-                     , websockets
+                     , bytestring >=0.10 && <0.11
+                     , containers        >= 0.5.7 && < 0.6
+                     , mtl               >= 2.2.1 && < 2.3
+                     , reflex            >= 0.5 && < 0.6
+                     , stm               >= 2.4.4 && < 2.5
+                     , websockets        >= 0.10.0 && < 0.11
+                     , reflex-basic-host >= 0.1.0 && < 0.2
+                     , reflex-binary     >= 0.1.0 && < 0.2
                      , reflex-server-websocket
   hs-source-dirs:      example/server
+  ghc-options:         -Wall
   default-language:    Haskell2010
+
+
+

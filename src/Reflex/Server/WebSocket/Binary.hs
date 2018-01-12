@@ -21,7 +21,7 @@ import Control.Monad.Trans (MonadIO)
 import Control.Monad.Fix (MonadFix)
 
 import qualified Data.ByteString as B
-import qualified Data.ByteString.Lazy as LB
+import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Char8 as BC
 
 import Data.Binary
@@ -35,7 +35,7 @@ import Reflex.Server.WebSocket.Common
 import Reflex.Server.WebSocket.Internal
 
 binaryTx :: Binary a => MkTx a
-binaryTx = MkTx (LB.toStrict . encode)
+binaryTx = MkTx (BL.toStrict . encode)
 
 binaryRx :: forall b. Binary b => MkRx b
 binaryRx =
@@ -44,7 +44,7 @@ binaryRx =
 
     handleDecoding onError onClosed _ (Fail _ _ s) = do
       onError ()
-      onClosed (False, 1001, BC.pack s)
+      onClosed (False, 1001, BL.fromStrict . BC.pack $ s)
       pure Nothing
     handleDecoding _ _ _ (Partial f) =
       pure . Just $ Partial f

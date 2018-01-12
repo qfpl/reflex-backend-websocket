@@ -3,10 +3,10 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Main where
 
-import Control.Monad (void)
-import Control.Monad.Trans (MonadIO, liftIO)
+import Control.Monad.Trans (liftIO)
 
 import Network.WebSockets
 
@@ -15,23 +15,19 @@ import Control.Concurrent.STM
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as BC
 
-import Data.Map (Map)
 import qualified Data.Map as Map
 
 import Reflex
 import Reflex.Basic.Host
 
 import Reflex.Server.WebSocket
-import Reflex.Server.WebSocket.ByteString
-
-import List
 
 guest ::
   WsManager PendingConnection ->
   IO ()
 guest wsm = basicHost $ mdo
   eIn <- wsData wsm
-  dCount <- count eIn
+  dCount :: Dynamic t Int <- count eIn
 
   dMap <- foldDyn ($) Map.empty .
           mergeWith (.) $ [
@@ -43,7 +39,9 @@ guest wsm = basicHost $ mdo
     wsd <- sample . current $ dv
 
     let
-      eTx = pure <$> _wsReceive ws
+      eRx = _wsReceive ws
+      f c r = B.append (BC.pack . show $ c) r
+      eTx = (\c r -> pure $ f c r) <$> current dCount <@> eRx
       eClose = (\(_, w, b) -> (w, b)) <$> _wsClosed ws
       wsc = WebSocketConfig eTx eClose
 
@@ -51,8 +49,9 @@ guest wsm = basicHost $ mdo
 
     performEvent_ $ (liftIO . putStrLn $ "Open") <$ _wsOpen ws
     performEvent_ $ (liftIO . putStrLn . ("Rx: " ++) . show) <$> _wsReceive ws
+    performEvent_ $ (liftIO . putStrLn . ("Closed: " ++). show) <$> _wsClosed ws
     performEvent_ $ (liftIO . putStrLn . ("Tx: " ++) . show) <$> eTx
-    performEvent_ $ (liftIO . putStrLn $ "Close") <$ eClose
+    performEvent_ $ (liftIO . putStrLn . ("Close: " ++). show) <$> eClose
 
     pure $ _wsClosed ws
 
