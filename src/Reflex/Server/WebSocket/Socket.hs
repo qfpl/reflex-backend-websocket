@@ -164,17 +164,15 @@ webSocket initSock (WebSocketConfig eTx eClose) = mdo
       onError ()
       onClosed (False, 1001, BL.fromStrict . BC.pack $ s)
 
+    shutdownRx =
+      void . atomically $ tryTakeTMVar isOpenRead
+
     rxLoop decoder = do
       mSock <- atomically $ tryReadTMVar isOpenRead
       forM_ mSock $ \_ -> do
         mbs <- handlerRx `catch` exHandlerRx `catch` exHandlerRxIO
-        forM_ mbs $ \bs -> do
-          case decoder of
-            IncrementalDecoder c stepRx -> do
-              mDecoder <- stepRx onDecodeError onRx bs c
-              case mDecoder of
-                Nothing -> void . atomically $ tryTakeTMVar isOpenRead
-                Just c' -> rxLoop $ IncrementalDecoder c' stepRx
+        forM_ mbs $
+          runIncrementalDecoder onDecodeError onRx (const shutdownRx) rxLoop decoder
 
     startRxLoop = liftIO $ do
       mSock <- atomically $ tryReadTMVar isOpenRead
