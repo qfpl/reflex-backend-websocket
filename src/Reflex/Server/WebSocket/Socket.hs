@@ -71,20 +71,25 @@ webSocket initSock (WebSocketConfig eTx eClose) = mdo
   (eClosed, onClosed) <- newTriggerEvent
 
   payloadQueue <- liftIO newTQueueIO
+  closeQueue <- liftIO . atomically $ newEmptyTMVar
   isOpenRead <- liftIO . atomically $ newEmptyTMVar
   isOpenWrite <- liftIO . atomically $ newEmptyTMVar
 
-  let
-    start = liftIO $ do
-      void . atomically . tryPutTMVar isOpenRead $ initSock
-      void . atomically . tryPutTMVar isOpenWrite $ initSock
-      onOpen ()
-      pure ()
-
   ePostBuild <- getPostBuild
-  performEvent_ $ start <$ ePostBuild
 
   let
+    exHandlerClose :: ConnectionException -> IO ()
+    exHandlerClose (CloseRequest code reason) = do
+      onClosed (True, code, reason)
+    exHandlerClose e = do
+      onError ()
+      onClosed (False, 1001, BL.fromStrict . BC.pack . displayException $ e)
+
+    exHandlerCloseIO :: IOException -> IO ()
+    exHandlerCloseIO e = do
+      onError ()
+      onClosed (False, 1001, BL.fromStrict . BC.pack . displayException $ e)
+
     exHandlerTx :: ConnectionException -> IO Bool
     exHandlerTx (CloseRequest code reason) = do
       mSock <- atomically . tryReadTMVar $ isOpenWrite
@@ -109,22 +114,45 @@ webSocket initSock (WebSocketConfig eTx eClose) = mdo
         onClosed (False, 1001, BL.fromStrict . BC.pack . displayException $ e)
       pure False
 
-    txLoop = do
+    handlerClose :: Word16 -> BL.ByteString -> IO ()
+    handlerClose _ reason = do
       mSock <- atomically . tryReadTMVar $ isOpenWrite
       forM_ mSock $ \sock -> do
-        bs <- atomically . readTQueue $ payloadQueue
-        success <-
-          (sendBinaryData sock (doEncode bs) >> pure True) `catch` exHandlerTx `catch` exHandlerTxIO
-        when success txLoop
+        sendClose sock reason
+
+    txLoop = do
+      let
+        stmTx = do
+          mSock <- tryReadTMVar isOpenWrite
+          case mSock of
+            Nothing -> pure (Left Nothing)
+            Just sock -> do
+              bs <- readTQueue payloadQueue
+              pure $ Right (sock, bs)
+        stmClose = do
+          mSock <- tryReadTMVar isOpenWrite
+          case mSock of
+            Nothing -> pure (Left Nothing)
+            Just sock -> do
+              x <- takeTMVar closeQueue
+              pure (Left (Just (sock, x)))
+      e <- atomically $ stmClose `orElse` stmTx
+      case e of
+        Right (sock, bs) -> do
+          success <-
+            (sendBinaryData sock (doEncode bs) >> pure True) `catch` exHandlerTx `catch` exHandlerTxIO
+          when success txLoop
+        Left (Just (sock, (code, reason))) -> do
+          void . atomically . tryTakeTMVar $ isOpenWrite
+          void . atomically . tryTakeTMVar $ isOpenRead
+          handlerClose code reason `catch` exHandlerClose `catch` exHandlerCloseIO
+          onClosed (True, code, reason)
+        Left Nothing ->
+          txLoop
 
     startTxLoop = liftIO $ do
       mSock <- atomically $ tryReadTMVar isOpenWrite
       forM_ mSock $ \_ -> void . forkIO $ txLoop
-
-  performEvent_ $ ffor eTx $ \payloads -> liftIO $ forM_ payloads $
-    atomically . writeTQueue payloadQueue
-
-  performEvent_ $ startTxLoop <$ ePostBuild
 
   let
     exHandlerRx :: ConnectionException -> IO (Maybe B.ByteString)
@@ -178,32 +206,21 @@ webSocket initSock (WebSocketConfig eTx eClose) = mdo
       mSock <- atomically $ tryReadTMVar isOpenRead
       forM_ mSock $ const . void . forkIO . rxLoop $ getDecoder
 
-  performEvent_ $ startRxLoop <$ ePostBuild
+  performEvent_ $ ffor eTx $ \payloads -> liftIO $ forM_ payloads $
+    atomically . writeTQueue payloadQueue
+
+  performEvent_ $ ffor eClose $ \x ->
+    liftIO . atomically . putTMVar closeQueue $ x
 
   let
-    exHandlerClose :: ConnectionException -> IO ()
-    exHandlerClose (CloseRequest code reason) = do
-      onClosed (True, code, reason)
-    exHandlerClose e = do
-      onError ()
-      onClosed (False, 1001, BL.fromStrict . BC.pack . displayException $ e)
+    start = liftIO $ do
+      void . atomically . tryPutTMVar isOpenRead $ initSock
+      void . atomically . tryPutTMVar isOpenWrite $ initSock
+      startTxLoop
+      startRxLoop
+      onOpen ()
+      pure ()
 
-    exHandlerCloseIO :: IOException -> IO ()
-    exHandlerCloseIO e = do
-      onError ()
-      onClosed (False, 1001, BL.fromStrict . BC.pack . displayException $ e)
-
-    handlerClose :: Word16 -> BL.ByteString -> IO ()
-    handlerClose _ reason = do
-      mSock <- atomically . tryReadTMVar $ isOpenWrite
-      forM_ mSock $ \sock -> do
-        sendClose sock reason
-
-    closeFn (code, reason) = liftIO $ do
-      void . atomically . tryTakeTMVar $ isOpenWrite
-      void . atomically . tryTakeTMVar $ isOpenRead
-      handlerClose code reason `catch` exHandlerClose `catch` exHandlerCloseIO
-
-  performEvent_ $ closeFn <$> eClose
+  performEvent_ $ start <$ ePostBuild
 
   pure $ WebSocket eRx eOpen eError eClosed

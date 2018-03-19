@@ -18,14 +18,14 @@ import qualified Data.ByteString.Char8 as BC
 import qualified Data.Map as Map
 
 import Reflex
-import Reflex.Basic.Host
+import Reflex.Host.Basic
 
 import Reflex.Server.WebSocket
 
 guest ::
   WsManager Connection ->
   IO()
-guest wsm = basicHost $ mdo
+guest wsm = basicHostForever $ mdo
   eIn <- wsData wsm
 
   dCount :: Dynamic t Int <- count eIn
