@@ -3,7 +3,7 @@
 , these, ttrie, websockets
 }:
 mkDerivation {
-  pname = "reflex-server-websocket";
+  pname = "reflex-backend-websocket";
   version = "0.1.0.0";
   src = ./.;
   isLibrary = true;

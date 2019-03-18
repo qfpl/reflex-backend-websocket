@@ -6,7 +6,7 @@ Stability   : experimental
 Portability : non-portable
 -}
 {-# LANGUAGE FlexibleContexts #-}
-module Reflex.Server.WebSocket.Reject (
+module Reflex.Backend.WebSocket.Reject (
     reject
   ) where
 
@@ -18,7 +18,7 @@ import Network.WebSockets
 
 import Reflex
 
-import Reflex.Server.WebSocket.Internal
+import Reflex.Backend.WebSocket.Internal
 
 reject :: ( PerformEvent t m
           , MonadIO (Performable m)

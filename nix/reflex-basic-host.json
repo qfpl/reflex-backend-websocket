@@ -1,7 +1,7 @@
 {
-  "url": "https://github.com/dalaing/reflex-basic-host",
-  "rev": "01a227d03abbb40497f0ec7b9983969fac257b4e",
-  "date": "2018-04-15T15:33:21+10:00",
-  "sha256": "1h5iyb9wz57zrv3vk9l0ylxdmr86y51175jzad40m9hdq3cinjri",
-  "fetchSubmodules": true
+  "url": "https://github.com/qfpl/reflex-basic-host",
+  "rev": "22fa91611f1eb8ef2f1cc4aeb7c52484a4c75dc5",
+  "date": "2019-03-18T10:37:31+10:00",
+  "sha256": "03zgphm0dib5nizxbzakb02561r3wsdlj91zh2x6b853dpdgcc1y",
+  "fetchSubmodules": false
 }

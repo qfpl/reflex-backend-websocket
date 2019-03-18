@@ -6,7 +6,7 @@ Stability   : experimental
 Portability : non-portable
 -}
 {-# LANGUAGE FlexibleContexts #-}
-module Reflex.Server.WebSocket.Connect (
+module Reflex.Backend.WebSocket.Connect (
     connect
   ) where
 
@@ -19,8 +19,8 @@ import Reflex
 
 import Reflex.Binary
 
-import Reflex.Server.WebSocket.Socket
-import Reflex.Server.WebSocket.Internal
+import Reflex.Backend.WebSocket.Socket
+import Reflex.Backend.WebSocket.Internal
 
 connect :: ( MonadHold t m
              , TriggerEvent t m

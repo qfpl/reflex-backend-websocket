@@ -3,7 +3,7 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-module Reflex.Server.WebSocket.Internal (
+module Reflex.Backend.WebSocket.Internal (
     WsManager(..)
   , mkWsManager
   , WsData(..)

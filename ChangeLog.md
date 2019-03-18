@@ -1,4 +1,4 @@
-# Revision history for reflex-server-websocket
+# Revision history for reflex-backend-websocket
 
 ## 0.1.0.0  -- YYYY-mm-dd
 

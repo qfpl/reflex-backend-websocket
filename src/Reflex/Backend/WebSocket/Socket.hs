@@ -8,7 +8,7 @@ Portability : non-portable
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecursiveDo #-}
 {-# LANGUAGE FlexibleContexts #-}
-module Reflex.Server.WebSocket.Socket (
+module Reflex.Backend.WebSocket.Socket (
     WebSocketConfig(..)
   , WebSocket(..)
   , webSocket

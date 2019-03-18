@@ -6,7 +6,7 @@ Stability   : experimental
 Portability : non-portable
 -}
 {-# LANGUAGE FlexibleContexts #-}
-module Reflex.Server.WebSocket.Accept (
+module Reflex.Backend.WebSocket.Accept (
     accept
   ) where
 
@@ -24,8 +24,8 @@ import Reflex
 
 import Reflex.Binary
 
-import Reflex.Server.WebSocket.Socket
-import Reflex.Server.WebSocket.Internal
+import Reflex.Backend.WebSocket.Socket
+import Reflex.Backend.WebSocket.Internal
 
 accept :: ( MonadHold t m
             , TriggerEvent t m

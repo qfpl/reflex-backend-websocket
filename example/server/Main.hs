@@ -20,7 +20,7 @@ import qualified Data.Map as Map
 import Reflex
 import Reflex.Host.Basic
 
-import Reflex.Server.WebSocket
+import Reflex.Backend.WebSocket
 
 guest ::
   WsManager PendingConnection ->
