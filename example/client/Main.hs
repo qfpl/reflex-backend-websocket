@@ -6,21 +6,17 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 module Main where
 
-import Control.Monad.Trans (liftIO)
-
-import Network.WebSockets
-
-import Control.Concurrent.STM
-
+import           Control.Concurrent (forkIO)
+import           Control.Concurrent.STM
+import           Control.Monad.Trans (liftIO)
 import qualified Data.ByteString as B
 import qualified Data.ByteString.Char8 as BC
-
+import           Data.Functor (void)
 import qualified Data.Map as Map
-
-import Reflex
-import Reflex.Host.Basic
-
-import Reflex.Backend.WebSocket
+import           Network.WebSockets
+import           Reflex
+import           Reflex.Backend.WebSocket
+import           Reflex.Host.Basic
 
 guest ::
   WsManager Connection ->
@@ -62,5 +58,5 @@ guest wsm = basicHostForever $ mdo
 main :: IO ()
 main = do
   wsm <- atomically $ mkWsManager 10
-  guest wsm
+  void . forkIO $ guest wsm
   runClient "127.0.0.1" 9000 "" (handleConnection wsm)
