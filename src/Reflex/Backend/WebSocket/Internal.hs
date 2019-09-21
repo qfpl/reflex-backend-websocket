@@ -21,6 +21,7 @@ import Data.Hashable (Hashable(..))
 import Control.Monad.STM
 import Control.Concurrent.STM.TVar
 import Control.Concurrent.STM.TBQueue
+import Numeric.Natural
 
 import qualified Control.Concurrent.STM.Map as SM
 
@@ -40,7 +41,7 @@ data WsData a =
 data WsManager a =
   WsManager (TVar Ticket) (TBQueue (WsData a)) (SM.Map Ticket ())
 
-mkWsManager :: Int -> STM (WsManager a)
+mkWsManager :: Natural -> STM (WsManager a)
 mkWsManager size =
   WsManager <$> newTVar (Ticket 0) <*> newTBQueue size <*> SM.empty
 
